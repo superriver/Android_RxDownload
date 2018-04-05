@@ -3,11 +3,9 @@ package com.example.river.download;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
 import com.example.river.download.rxdownload.DBHelper;
@@ -19,25 +17,21 @@ import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
     private Button start;
-    private Button restart;
-    private Button cancel;
 
     private NumberProgressBar mProgressBar;
     private DownloadRecord fileInfo;
 
-    private RecyclerView rvList;
+    // private RecyclerView rvList;
 
-    private Disposable disposable;
+    private TextView tvSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         start = findViewById(R.id.start);
+        tvSize = findViewById(R.id.tv_size);
         mProgressBar = findViewById(R.id.number_progress_bar);
-        rvList = findViewById(R.id.rv_list);
-        rvList.setLayoutManager(new LinearLayoutManager(this));
-        rvList.setAdapter(new DownloadAdapter());
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -47,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
                         super.onNext(fileInfo);
                         mProgressBar.setMax((int) fileInfo.getTotalSize());
                         mProgressBar.setProgress((int) fileInfo.getProgress());
+                        tvSize.setText(getString(R.string.size, fileInfo.getProgress(), fileInfo.getTotalSize()));
                     }
 
                     @Override
@@ -70,15 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(disposable.isDisposed()){
-            disposable.dispose();
-        }
-    }
-
     private DownloadRecord checkDB() {
         DBHelper dbHelper = new DBHelper(MainActivity.this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -94,28 +80,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class DownloadAdapter extends RecyclerView.Adapter<BaseViewHolder> {
-
-        @Override
-        public BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return null;
-        }
-
-        @Override
-        public void onBindViewHolder(BaseViewHolder holder, int position) {
-
-        }
-
-        @Override
-        public int getItemCount() {
-            return 0;
-        }
-    }
-
-    static class BaseViewHolder extends RecyclerView.ViewHolder {
-
-        public BaseViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
+//    private class DownloadAdapter extends RecyclerView.Adapter<BaseViewHolder> {
+//
+//        @Override
+//        public BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//            return null;
+//        }
+//
+//        @Override
+//        public void onBindViewHolder(BaseViewHolder holder, int position) {
+//
+//        }
+//
+//        @Override
+//        public int getItemCount() {
+//            return 0;
+//        }
+//    }
+//
+//    static class BaseViewHolder extends RecyclerView.ViewHolder {
+//
+//        public BaseViewHolder(View itemView) {
+//            super(itemView);
+//        }
+//    }
 }

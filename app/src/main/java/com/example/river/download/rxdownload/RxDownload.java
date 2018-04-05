@@ -22,10 +22,8 @@ public class RxDownload {
         return this;
     }
 
-
     public void start(DownloadObserver observer) {
         manager.start(observer);
     }
-
 
 }

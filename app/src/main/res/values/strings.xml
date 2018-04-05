@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Android_download</string>
-    <string name="size">%1$sM/%2$sM</string>
+    <string name="size">%1$lM/%2$lM</string>
 </resources>

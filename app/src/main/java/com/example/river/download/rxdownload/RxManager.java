@@ -41,6 +41,7 @@ public class RxManager {
         return fileInfo;
     }
 
+    //获取文件大总长度
     public long getContentLength() {
         Request request = new Request.Builder()
                 .url(url)
