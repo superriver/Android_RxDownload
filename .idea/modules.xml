@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Android_download.iml" filepath="$PROJECT_DIR$/Android_download.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Android_RxDownload.iml" filepath="$PROJECT_DIR$/Android_RxDownload.iml" />
+      <module fileurl="file://D:\project\android\Android_RxDownload\Android_download.iml" filepath="D:\project\android\Android_RxDownload\Android_download.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

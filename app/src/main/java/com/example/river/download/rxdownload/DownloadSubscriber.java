@@ -1,7 +1,5 @@
 package com.example.river.download.rxdownload;
 
-import com.example.river.download.FileInfo;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -18,22 +16,23 @@ import okhttp3.Response;
  * Created by Administrator on 2018/3/30.
  */
 
-public class DownloadSubscriber implements ObservableOnSubscribe<FileInfo> {
-    private FileInfo fileInfo;
+public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord> {
+    private DownloadRecord record;
     private OkHttpClient client;
     private Map<String, Call> map;
 
-    public DownloadSubscriber(FileInfo fileInfo, Map<String, Call> map) {
-        this.fileInfo = fileInfo;
+    public DownloadSubscriber(DownloadRecord record, Map<String, Call> map) {
+        this.record = record;
         this.map = map;
         client = new OkHttpClient();
     }
 
     @Override
     public void subscribe(ObservableEmitter e) throws Exception {
-        long finishedLen = fileInfo.getProgress();
-        long totalLen = fileInfo.getLen();
-        String url = fileInfo.getUrl();
+
+        long finishedLen = record.getProgress();
+        long totalLen = record.getTotalSize();
+        String url = record.getUrl();
         Request request = new Request.Builder()
                 .addHeader("RANGE", "bytes=" + finishedLen + "-" + totalLen)
                 .url(url)
@@ -41,7 +40,7 @@ public class DownloadSubscriber implements ObservableOnSubscribe<FileInfo> {
         Call call = client.newCall(request);
         map.put(url, call);
         Response response = call.execute();
-        File file = new File("", fileInfo.getFileName());
+        File file = new File(App.getContext().getFilesDir(), record.getFileName());
         FileOutputStream fos = null;
         InputStream is = null;
         try {
@@ -52,8 +51,8 @@ public class DownloadSubscriber implements ObservableOnSubscribe<FileInfo> {
             while ((len = is.read(buffer)) != -1) {
                 fos.write(buffer, 0, len);
                 finishedLen += len;
-                fileInfo.setProgress(finishedLen);
-                e.onNext(fileInfo);
+                record.setProgress(finishedLen);
+                e.onNext(record);
             }
             fos.flush();
             map.remove(url);

@@ -1,7 +1,5 @@
 package com.example.river.download.rxdownload;
 
-import com.example.river.download.FileInfo;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,8 +32,12 @@ public class RxManager {
         map = new HashMap<>();
     }
 
-    public FileInfo newTask(String url) {
-        FileInfo fileInfo = new FileInfo();
+    public DownloadRecord newTask(String url) {
+        DownloadRecord fileInfo = new DownloadRecord();
+        fileInfo.setUrl(url);
+        fileInfo.setTotalSize(getContentLength());
+        String fileName = url.substring(url.lastIndexOf("/"));
+        fileInfo.setFileName(fileName);
         return fileInfo;
     }
 
@@ -63,29 +65,29 @@ public class RxManager {
                         return !map.containsKey(s);
                     }
                 })
-                .flatMap(new Function<String, ObservableSource<FileInfo>>() {
+                .flatMap(new Function<String, ObservableSource<DownloadRecord>>() {
                     @Override
-                    public ObservableSource<FileInfo> apply(@NonNull String s) throws Exception {
+                    public ObservableSource<DownloadRecord> apply(@NonNull String s) throws Exception {
                         return Observable.just(newTask(s));
                     }
-                }).map(new Function<FileInfo, FileInfo>() {
+                }).map(new Function<DownloadRecord, DownloadRecord>() {
             @Override
-            public FileInfo apply(@NonNull FileInfo file) throws Exception {
+            public DownloadRecord apply(@NonNull DownloadRecord file) throws Exception {
                 return getRealFileName(file);
             }
-        }).flatMap(new Function<FileInfo, ObservableSource<FileInfo>>() {
+        }).flatMap(new Function<DownloadRecord, ObservableSource<DownloadRecord>>() {
             @Override
-            public ObservableSource<FileInfo> apply(@NonNull FileInfo fileInfo) throws Exception {
-                return Observable.create(new DownloadSubscriber(fileInfo,map));
+            public ObservableSource<DownloadRecord> apply(@NonNull DownloadRecord record) throws Exception {
+                return Observable.create(new DownloadSubscriber(record, map));
             }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io())
                 .subscribe(downloadObserver);
     }
 
-    public FileInfo getRealFileName(FileInfo fileInfo) {
-        String fileName = fileInfo.getFileName();
-        long finishedLen = 0, totalLen = fileInfo.getLen();
-        File file = new File("", fileName);
+    public DownloadRecord getRealFileName(DownloadRecord record) {
+        String fileName = record.getFileName();
+        long finishedLen = 0, totalLen = record.getTotalSize();
+        File file = new File(App.getContext().getFilesDir(), fileName);
         if (file.exists()) {
             finishedLen = file.length();
         }
@@ -99,13 +101,13 @@ public class RxManager {
                 newFileName = fileName.substring(0, dotIndex)
                         + "(" + i + ")" + fileName.substring(dotIndex);
             }
-            File newFile = new File("", newFileName);
+            File newFile = new File(App.getContext().getFilesDir(), newFileName);
             file = newFile;
             finishedLen = newFile.length();
             i++;
         }
-        fileInfo.setProgress(finishedLen);
-        fileInfo.setFileName(file.getName());
-        return fileInfo;
+        record.setProgress(finishedLen);
+        record.setFileName(file.getName());
+        return record;
     }
 }
