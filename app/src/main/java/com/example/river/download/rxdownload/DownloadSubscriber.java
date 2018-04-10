@@ -1,9 +1,6 @@
 package com.example.river.download.rxdownload;
 
-import android.util.Log;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Map;
@@ -45,12 +42,10 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
         map.put(url, call);
         Response response = call.execute();
         File file = new File(Constant.DEFAULT_FILE_PATH, record.getFileName());
-        FileOutputStream fos = null;
         InputStream is = null;
         RandomAccessFile randomAccessFile = null;
         try {
             is = response.body().byteStream();
-            //  fos = new FileOutputStream(file);
             randomAccessFile = new RandomAccessFile(file, "rw");
             randomAccessFile.seek(finishedLen);//跳过已经下载的字节
             byte[] buffer = new byte[2048];
@@ -59,10 +54,8 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
                 randomAccessFile.write(buffer, 0, len);
                 finishedLen += len;
                 record.setProgress(finishedLen);
-                Log.d("huang", "onNext--");
                 e.onNext(record);
             }
-            //  fos.flush();
             map.remove(url);
         } finally {
             if (is != null) {
@@ -71,20 +64,9 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
             if (randomAccessFile != null) {
                 randomAccessFile.close();
             }
-//            if (fos != null) {
-//                fos.close();
-//            }
 
         }
         e.onComplete();
     }
 
-    //每次下载需要新建新的Call对象
-//    private Call newCall(String url, long startPoints) {
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .header("RANGE", "bytes=" + startPoints + "-")//断点续传要用到的，指示下载的区间
-//                .build();
-//        return client.newCall(request);
-//    }
 }

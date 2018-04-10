@@ -1,5 +1,9 @@
 package com.example.river.download.rxdownload;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+
 import java.io.File;
 
 /**
@@ -17,5 +21,16 @@ public class FileHelper {
         return false;
 
     }
+
+    public static void openDirect(Context context, DownloadRecord record) {
+        File file = new File(Constant.DEFAULT_FILE_PATH );
+        //获取父目录
+        File parentFlie = new File(file.getParent());
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setDataAndType(Uri.fromFile(parentFlie), "*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        context.startActivity(intent);
+    }
+
 
 }

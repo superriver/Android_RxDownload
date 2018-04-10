@@ -27,6 +27,8 @@ public class DBOption {
 
     private DBOption(Context context) {
         dbHelper = new DBHelper(context);
+        readDB = dbHelper.getReadableDatabase();
+        writeDB = dbHelper.getWritableDatabase();
     }
 
     private volatile static DBOption singleton;
@@ -50,25 +52,25 @@ public class DBOption {
         // cv.put(DB.FILE_SAVE_PATH, info.getLen());
         cv.put(DB.FILE_DOWNLOAD_SIZE, record.getProgress());
         cv.put(DB.FILE_STATE, record.isFinished());
-        return getWritableDatabase().insert(DB.TABLE_NAME, null, cv);
+        return readDB.insert(DB.TABLE_NAME, null, cv);
     }
 
     public long updateRecord(String url, DownloadRecord record) {
         ContentValues values = new ContentValues();
         values.put(DB.FILE_TOTAL_SIZE, record.getTotalSize());
         values.put(DB.FILE_DOWNLOAD_SIZE, record.getProgress());
-        return getWritableDatabase().update(DB.TABLE_NAME, values, "url=?", new String[]{url});
+        return readDB.update(DB.TABLE_NAME, values, "url=?", new String[]{url});
     }
 
     public long delete(String url) {
-        return getReadableDatabase().delete(DB.TABLE_NAME, "url = ?", new String[]{url});
+        return readDB.delete(DB.TABLE_NAME, "url = ?", new String[]{url});
     }
 
     public DownloadRecord readSingleRecord(String url) {
         DownloadRecord info = new DownloadRecord();
         Cursor cursor = null;
         try {
-            cursor = getReadableDatabase().rawQuery("select * from " + DB.TABLE_NAME + " where = " + "url=?", new String[]{url});
+            cursor = readDB.rawQuery("select * from " + DB.TABLE_NAME + " where " + "url=?", new String[]{url});
             DownloadRecord record = new DownloadRecord();
             while (cursor.moveToFirst()) {
                 record.setFileName(cursor.getString(cursor.getColumnIndex(DB.FILE_NAME)));
@@ -90,7 +92,7 @@ public class DBOption {
     public boolean isExit(String url) {
         Cursor cursor = null;
         try {
-            cursor = getReadableDatabase().query(true, DB.TABLE_NAME, null, "url=?", new String[]{url}, null, null, null, null);
+            cursor = readDB.query(true, DB.TABLE_NAME, null, "url=?", new String[]{url}, null, null, null, null);
             return cursor.getCount() == 0;
         } finally {
             if (null != cursor) {
@@ -105,7 +107,7 @@ public class DBOption {
             public void subscribe(ObservableEmitter<List<DownloadRecord>> e) throws Exception {
                 Cursor cursor = null;
                 try {
-                    cursor = getReadableDatabase().rawQuery("select * from " + DB.TABLE_NAME, new String[]{});
+                    cursor = readDB.rawQuery("select * from " + DB.TABLE_NAME, new String[]{});
                     List<DownloadRecord> records = new ArrayList<>();
                     while (cursor.moveToNext()) {
                         DownloadRecord record = new DownloadRecord();
@@ -135,7 +137,7 @@ public class DBOption {
             public void subscribe(ObservableEmitter<DownloadRecord> e) throws Exception {
                 Cursor cursor = null;
                 try {
-                    cursor = getReadableDatabase().rawQuery("select * from " + DB.TABLE_NAME + " where = " + "url=?", new String[]{url});
+                    cursor = readDB.rawQuery("select * from " + DB.TABLE_NAME + " where  " + "url=?", new String[]{url});
                     DownloadRecord record = new DownloadRecord();
                     while (cursor.moveToNext()) {
                         record.setFileName(cursor.getString(cursor.getColumnIndex(DB.FILE_NAME)));
@@ -156,31 +158,6 @@ public class DBOption {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public SQLiteDatabase getWritableDatabase() {
-        SQLiteDatabase db = writeDB;
-        if (db == null) {
-            synchronized (dblock) {
-                db = writeDB;
-                if (db == null) {
-                    db = writeDB = dbHelper.getWritableDatabase();
-                }
-            }
-        }
-        return db;
-    }
-
-    public SQLiteDatabase getReadableDatabase() {
-        SQLiteDatabase db = readDB;
-        if (db == null) {
-            synchronized (dblock) {
-                db = readDB;
-                if (db == null) {
-                    db = readDB = dbHelper.getReadableDatabase();
-                }
-            }
-        }
-        return db;
-    }
 
     public void closeDB() {
         if (dbHelper != null) {

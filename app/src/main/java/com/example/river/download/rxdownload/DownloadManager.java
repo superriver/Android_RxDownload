@@ -1,7 +1,5 @@
 package com.example.river.download.rxdownload;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,15 +30,12 @@ public class DownloadManager {
     private Map<String, DownloadRecord> mRecordMap;
     //  private Map<String, Disposable> mDisposableMap;
     private Map<String, Call> mCallMap;
-    private DBOption mOption;
-    private String mSavePath;
 
     private String mFileName;
 
     //private CompositeDisposable disposable = new CompositeDisposable();
 
-    public DownloadManager(DBOption option) {
-        mOption = option;
+    public DownloadManager() {
         client = new OkHttpClient();
         mSubMap = new HashMap<>();
         mRecordMap = new HashMap<>();
@@ -72,7 +67,6 @@ public class DownloadManager {
 
                     @Override
                     public DownloadRecord apply(@NonNull String s) throws Exception {
-                        Log.d("huang", "s--" + s);
                         long totalSize = getContentLength(s);
                         DownloadRecord record = mRecordMap.get(s);
                         if (record == null) {
@@ -101,17 +95,15 @@ public class DownloadManager {
                 .subscribeWith(downloadObserver);
     }
 
-    public void pause(String url, DownloadRecord record) {
-
+    public void pause(String url) {
         Call call = mCallMap.get(url);
         if (call != null) {
             call.cancel();
         }
         mCallMap.remove(url);
-        mOption.insert(record);//保存数据
     }
 
-    public void cancel(String url, DownloadRecord record) {
+    public void cancel(String url) {
         mCallMap.remove(url);
     }
 
@@ -155,13 +147,5 @@ public class DownloadManager {
 //        return record;
 //    }
 
-    public void setFileName(String fileName) {
-        mFileName = fileName;
-    }
-
-
-    public void setSavePath(String savePath) {
-        mSavePath = savePath;
-    }
 
 }

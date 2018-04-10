@@ -84,6 +84,17 @@ public class DownloadController {
             callback.startDownload();
         }
     }
+    public static class CompleteState implements DownloadState {
 
+        @Override
+        public void setText(Button btnState) {
+            btnState.setText("打开");
+        }
+
+        @Override
+        public void handleClick(Callback callback) {
+            callback.completeDownload();
+        }
+    }
 
 }

@@ -21,7 +21,7 @@ public class RxDownload {
 
     private RxDownload() {
         mOption = DBOption.getSingleton(mContext);
-        manager = new DownloadManager(mOption);
+        manager = new DownloadManager();
     }
 
     public static RxDownload of() {
@@ -38,29 +38,21 @@ public class RxDownload {
         return this;
     }
 
-    public RxDownload savePath(String path) {
-        return this;
-    }
-
-    public RxDownload fileName(String name) {
-        return this;
-    }
 
     public void start(DownloadListener listener) {
         manager.start(url, listener);
     }
 
     public void pause(DownloadRecord record) {
-        manager.pause(url, record);
+        manager.pause(record.getUrl());
+        mOption.insert(record);
     }
 
     public void cancel(DownloadRecord record) {
-        manager.cancel(url, record);
+        manager.cancel(record.getUrl());
     }
-    //    private Observable<> receiveDownloadStatus(){
-//
-//    }
-    public Observable<DownloadRecord> getDownloadRecordFromDB() {
+
+    public Observable<DownloadRecord> getDownloadRecordFromDB(String url) {
         return mOption.readRecord(url);
     }
 

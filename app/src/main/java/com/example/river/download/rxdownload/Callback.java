@@ -10,4 +10,6 @@ public interface Callback {
     void pauseDownload();
 
     void cancelDownload();
+
+    void completeDownload();
 }

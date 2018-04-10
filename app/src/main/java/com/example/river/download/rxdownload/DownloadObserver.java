@@ -15,13 +15,11 @@ public class DownloadObserver extends DisposableObserver<DownloadRecord> {
 
     public DownloadObserver(DownloadListener listener) {
         this.listener = listener;
-        event = new DownloadEvent();
     }
 
     protected String errMsg = "";
     protected Disposable disposable;
     private DownloadRecord mRecord;
-    private DownloadEvent event;
 
 
 
@@ -43,12 +41,16 @@ public class DownloadObserver extends DisposableObserver<DownloadRecord> {
         Log.d("huang", "onError--" + e.getMessage());
         listener.onFailed(mRecord);
         //mOption.insert(mRecord);
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
 
     }
 
     @Override
     public void onComplete() {
         listener.onSuccess(mRecord);
+        Log.d("huang", "onComplete--");
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
