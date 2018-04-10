@@ -25,8 +25,21 @@ public class DBOption {
     private SQLiteDatabase writeDB;
     private final Object dblock = new Object();
 
-    public DBOption(Context context) {
+    private DBOption(Context context) {
         dbHelper = new DBHelper(context);
+    }
+
+    private volatile static DBOption singleton;
+
+    public static DBOption getSingleton(Context context) {
+        if (singleton == null) {
+            synchronized (DBOption.class) {
+                if (singleton == null) {
+                    singleton = new DBOption(context);
+                }
+            }
+        }
+        return singleton;
     }
 
     public long insert(DownloadRecord record) {
@@ -36,25 +49,39 @@ public class DBOption {
         cv.put(DB.FILE_TOTAL_SIZE, record.getTotalSize());
         // cv.put(DB.FILE_SAVE_PATH, info.getLen());
         cv.put(DB.FILE_DOWNLOAD_SIZE, record.getProgress());
-        // cv.put("finished",info.getFinished());
+        cv.put(DB.FILE_STATE, record.isFinished());
         return getWritableDatabase().insert(DB.TABLE_NAME, null, cv);
+    }
+
+    public long updateRecord(String url, DownloadRecord record) {
+        ContentValues values = new ContentValues();
+        values.put(DB.FILE_TOTAL_SIZE, record.getTotalSize());
+        values.put(DB.FILE_DOWNLOAD_SIZE, record.getProgress());
+        return getWritableDatabase().update(DB.TABLE_NAME, values, "url=?", new String[]{url});
     }
 
     public long delete(String url) {
         return getReadableDatabase().delete(DB.TABLE_NAME, "url = ?", new String[]{url});
     }
 
-    public DownloadRecord queryData(String url) {
-        Cursor cursor = getReadableDatabase().query(true, DB.TABLE_NAME, null, "url=?", new String[]{url}, null, null, null, null);
+    public DownloadRecord readSingleRecord(String url) {
         DownloadRecord info = new DownloadRecord();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                info.setFileName(cursor.getString(cursor.getColumnIndex("fileName")));
-                info.setUrl(cursor.getString(cursor.getColumnIndex("url")));
-                info.setTotalSize(cursor.getInt(cursor.getColumnIndex("length")));
-                //info.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
+        Cursor cursor = null;
+        try {
+            cursor = getReadableDatabase().rawQuery("select * from " + DB.TABLE_NAME + " where = " + "url=?", new String[]{url});
+            DownloadRecord record = new DownloadRecord();
+            while (cursor.moveToFirst()) {
+                record.setFileName(cursor.getString(cursor.getColumnIndex(DB.FILE_NAME)));
+                record.setUrl(cursor.getString(cursor.getColumnIndex(DB.FILE_URL)));
+                record.setTotalSize(cursor.getInt(cursor.getColumnIndex(DB.FILE_TOTAL_SIZE)));
+                record.setProgress(cursor.getInt(cursor.getColumnIndex(DB.FILE_DOWNLOAD_SIZE)));
             }
-            cursor.close();
+
+        } finally {
+            if (null != cursor) {
+                cursor.close();
+            }
+
         }
         return info;
     }
@@ -98,6 +125,33 @@ public class DBOption {
                 }
 
 
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public Observable<DownloadRecord> readRecord(final String url) {
+        return Observable.create(new ObservableOnSubscribe<DownloadRecord>() {
+            @Override
+            public void subscribe(ObservableEmitter<DownloadRecord> e) throws Exception {
+                Cursor cursor = null;
+                try {
+                    cursor = getReadableDatabase().rawQuery("select * from " + DB.TABLE_NAME + " where = " + "url=?", new String[]{url});
+                    DownloadRecord record = new DownloadRecord();
+                    while (cursor.moveToNext()) {
+                        record.setFileName(cursor.getString(cursor.getColumnIndex(DB.FILE_NAME)));
+                        record.setUrl(cursor.getString(cursor.getColumnIndex(DB.FILE_URL)));
+                        record.setTotalSize(cursor.getInt(cursor.getColumnIndex(DB.FILE_TOTAL_SIZE)));
+                        record.setProgress(cursor.getInt(cursor.getColumnIndex(DB.FILE_DOWNLOAD_SIZE)));
+                        e.onNext(record);
+                    }
+
+                    e.onComplete();
+                } finally {
+                    if (null != cursor) {
+                        cursor.close();
+                    }
+
+                }
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }

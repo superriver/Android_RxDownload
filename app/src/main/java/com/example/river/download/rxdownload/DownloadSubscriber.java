@@ -1,8 +1,11 @@
 package com.example.river.download.rxdownload;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.util.Map;
 
 import io.reactivex.ObservableEmitter;
@@ -28,11 +31,12 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
     }
 
     @Override
-    public void subscribe(ObservableEmitter e) throws Exception {
+    public void subscribe(ObservableEmitter<DownloadRecord> e) throws Exception {
 
         long finishedLen = record.getProgress();
         long totalLen = record.getTotalSize();
         String url = record.getUrl();
+        e.onNext(record);//初始进度信息
         Request request = new Request.Builder()
                 .addHeader("RANGE", "bytes=" + finishedLen + "-" + totalLen)
                 .url(url)
@@ -40,31 +44,47 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
         Call call = client.newCall(request);
         map.put(url, call);
         Response response = call.execute();
-        File file = new File(App.getContext().getFilesDir(), record.getFileName());
+        File file = new File(Constant.DEFAULT_FILE_PATH, record.getFileName());
         FileOutputStream fos = null;
         InputStream is = null;
+        RandomAccessFile randomAccessFile = null;
         try {
             is = response.body().byteStream();
-            fos = new FileOutputStream(file, true);
+            //  fos = new FileOutputStream(file);
+            randomAccessFile = new RandomAccessFile(file, "rw");
+            randomAccessFile.seek(finishedLen);//跳过已经下载的字节
             byte[] buffer = new byte[2048];
             int len;
             while ((len = is.read(buffer)) != -1) {
-                fos.write(buffer, 0, len);
+                randomAccessFile.write(buffer, 0, len);
                 finishedLen += len;
                 record.setProgress(finishedLen);
+                Log.d("huang", "onNext--");
                 e.onNext(record);
             }
-            fos.flush();
+            //  fos.flush();
             map.remove(url);
         } finally {
             if (is != null) {
                 is.close();
             }
-            if (fos != null) {
-                fos.close();
+            if (randomAccessFile != null) {
+                randomAccessFile.close();
             }
+//            if (fos != null) {
+//                fos.close();
+//            }
 
         }
         e.onComplete();
     }
+
+    //每次下载需要新建新的Call对象
+//    private Call newCall(String url, long startPoints) {
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .header("RANGE", "bytes=" + startPoints + "-")//断点续传要用到的，指示下载的区间
+//                .build();
+//        return client.newCall(request);
+//    }
 }

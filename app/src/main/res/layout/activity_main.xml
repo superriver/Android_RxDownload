@@ -31,7 +31,7 @@
             android:layout_height="40dp"
             android:layout_weight="0.3"
             android:gravity="center"
-            android:text="开始" />
+            android:text="" />
 
     </LinearLayout>
 
@@ -39,5 +39,5 @@
         android:id="@+id/tv_size"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/size" />
+        android:text="0.0KB/0.0KB" />
 </LinearLayout>
