@@ -26,18 +26,12 @@ public class DownloadManager {
     public static final int CANCEL_STATE = 1003;
     public static final int COMPLETE_STATE = 1004;
     private OkHttpClient client;
-    private Map<String, DownloadObserver> mSubMap;
     private Map<String, DownloadRecord> mRecordMap;
-    //  private Map<String, Disposable> mDisposableMap;
     private Map<String, Call> mCallMap;
-
-    private String mFileName;
-
     //private CompositeDisposable disposable = new CompositeDisposable();
 
     public DownloadManager() {
         client = new OkHttpClient();
-        mSubMap = new HashMap<>();
         mRecordMap = new HashMap<>();
         mCallMap = new HashMap<>();
     }
@@ -75,7 +69,7 @@ public class DownloadManager {
                         }
                         record.setUrl(s);
                         record.setTotalSize(totalSize);
-                        String fileName = mFileName == null ? s.substring(s.lastIndexOf("/")) : mFileName;
+                        String fileName = s.substring(s.lastIndexOf("/"));
                         record.setFileName(fileName);
                         return record;
                     }
@@ -90,7 +84,6 @@ public class DownloadManager {
 
     public void start(String url, DownloadListener listenerr) {
         DownloadObserver downloadObserver = new DownloadObserver(listenerr);
-        mSubMap.put(url, downloadObserver);
         getObservable(url)
                 .subscribeWith(downloadObserver);
     }
@@ -106,46 +99,6 @@ public class DownloadManager {
     public void cancel(String url) {
         mCallMap.remove(url);
     }
-
-//    public void isExit() {
-//        Observable<DownloadRecord> db = Observable.create(new ObservableOnSubscribe<DownloadRecord>() {
-//            @Override
-//            public void subscribe(ObservableEmitter<DownloadRecord> e) throws Exception {
-//                if (mOption.isExit(mUrl)) {
-//                    mOption.readRecord(mUrl);
-//                } else {
-//
-//                }
-//            }
-//        });
-//    }
-
-//    public DownloadRecord getRealFileName(DownloadRecord record) {
-//        String fileName = record.getFileName();
-//        long finishedLen = 0, totalLen = record.getTotalSize();
-//        File file = new File(App.getContext().getFilesDir(), fileName);
-//        if (file.exists()) {
-//            finishedLen = file.length();
-//        }
-//        int i = 1;
-//        while (finishedLen >= totalLen) {
-//            int dotIndex = fileName.lastIndexOf(".");
-//            String newFileName;
-//            if (dotIndex == -1) {
-//                newFileName = fileName + "(" + i + ")";
-//            } else {
-//                newFileName = fileName.substring(0, dotIndex)
-//                        + "(" + i + ")" + fileName.substring(dotIndex);
-//            }
-//            File newFile = new File(App.getContext().getFilesDir(), newFileName);
-//            file = newFile;
-//            finishedLen = newFile.length();
-//            i++;
-//        }
-//        record.setProgress(finishedLen);
-//        record.setFileName(file.getName());
-//        return record;
-//    }
 
 
 }
