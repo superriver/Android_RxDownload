@@ -57,7 +57,7 @@ public class DownloadManager {
 
     public Observable<DownloadRecord> getObservable(String url) {
         return Observable.just(url)
-                .map(new Function<String, DownloadRecord>() {
+                .map(new Function<String, DownloadRecord>() {//转换数据类型
 
                     @Override
                     public DownloadRecord apply(@NonNull String s) throws Exception {
@@ -73,7 +73,7 @@ public class DownloadManager {
                         record.setFileName(fileName);
                         return record;
                     }
-                }).flatMap(new Function<DownloadRecord, ObservableSource<DownloadRecord>>() {
+                }).flatMap(new Function<DownloadRecord, ObservableSource<DownloadRecord>>() {//
                     @Override
                     public ObservableSource<DownloadRecord> apply(@NonNull DownloadRecord record) throws Exception {
                         return Observable.create(new DownloadSubscriber(record, mCallMap));
@@ -82,8 +82,8 @@ public class DownloadManager {
 
     }
 
-    public void start(String url, DownloadListener listenerr) {
-        DownloadObserver downloadObserver = new DownloadObserver(listenerr);
+    public void start(String url, DownloadListener listener) {
+        DownloadObserver downloadObserver = new DownloadObserver(listener);
         getObservable(url)
                 .subscribeWith(downloadObserver);
     }

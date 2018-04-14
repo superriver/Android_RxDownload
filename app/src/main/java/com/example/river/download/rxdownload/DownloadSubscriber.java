@@ -14,7 +14,9 @@ import okhttp3.Response;
 
 /**
  * Created by Administrator on 2018/3/30.
+ * 主题对象
  */
+
 
 public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord> {
     private DownloadRecord record;
@@ -54,7 +56,7 @@ public class DownloadSubscriber implements ObservableOnSubscribe<DownloadRecord>
                 randomAccessFile.write(buffer, 0, len);
                 finishedLen += len;
                 record.setProgress(finishedLen);
-                e.onNext(record);
+                e.onNext(record);//发射下载的进度
             }
             map.remove(url);
         } finally {

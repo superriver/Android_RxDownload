@@ -1,12 +1,11 @@
 package com.example.river.download.rxdownload;
 
-import android.util.Log;
-
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.DisposableObserver;
 
 /**
  * Created by Administrator on 2018/3/29.
+ * 观察者
  */
 
 public class DownloadObserver extends DisposableObserver<DownloadRecord> {
